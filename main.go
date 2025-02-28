@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -11,6 +10,10 @@ import (
 type Country struct {
 	idx  int
 	name string
+}
+
+func (c *Country) SetName(name string) {
+	c.name = name
 }
 
 var dsn = "landmark:landmark@csmsu@tcp(202.28.34.197:3306)/landmark"
@@ -28,7 +31,8 @@ func getConnection() (*sql.DB, error) {
 	return db, err
 }
 
-func getCountries() ([]Country, error) {
+// CRUD
+func GetCountries() ([]Country, error) {
 	db, err := getConnection()
 	if err != nil {
 		panic(err.Error())
@@ -122,8 +126,46 @@ func AddCountry(country Country) (int64, int64, error) {
 	return affected, id, nil
 }
 
+func UpdateCountry(country Country) (int64, error) {
+	db, err := getConnection()
+	if err != nil {
+		return -1, err
+	}
+	query := "update country set name = ? where idx = ?"
+	result, err := db.Exec(query, country.name, country.idx)
+	if err != nil {
+		return -1, err
+	}
+
+	affected, err := result.RowsAffected()
+	if err != nil {
+		return -1, err
+	}
+
+	return affected, nil
+}
+
+func DeleteCountry(idx int) (int64, error) {
+	db, err := getConnection()
+	if err != nil {
+		return -1, err
+	}
+	query := "delete from country where idx = ?"
+	result, err := db.Exec(query, idx)
+	if err != nil {
+		return -1, err
+	}
+
+	affected, err := result.RowsAffected()
+	if err != nil {
+		return -1, err
+	}
+
+	return affected, nil
+}
+
 func main() {
-	// countries, err := getCountries()
+	// countries, err := GetCountries()
 	// if err != nil {
 	// 	panic(err.Error())
 	// }
@@ -135,10 +177,31 @@ func main() {
 	// }
 	// fmt.Println(country)
 
-	countries, err := GetCountryByName("อ")
+	// countries, err := GetCountryByName("อ")
+	// if err != nil {
+	// 	panic(err.Error())
+	// }
+	// result := countries
+	// fmt.Println(result)
+
+	// country := Country{}
+	// country.SetName("New Country")
+	// affected, idx, err := AddCountry(country)
+	// if err != nil {
+	// 	panic(err.Error())
+	// }
+	// fmt.Println(affected, idx)
+
+	// country := Country{idx: 175, name: "Super New Country"}
+	// affected, err := UpdateCountry(country)
+	// if err != nil {
+	// 	panic(err.Error())
+	// }
+	// fmt.Println(affected)
+
+	affected, err := DeleteCountry(175)
 	if err != nil {
 		panic(err.Error())
 	}
-	result := countries
-	fmt.Println(result)
+	println(affected)
 }
